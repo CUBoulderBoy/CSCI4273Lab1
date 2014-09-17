@@ -127,7 +127,7 @@ connectsock(const char *host, const char *portnum)
                 errexit("can't get \"%s\" host entry\n", host);
 
     /* Allocate a socket */
-        s = socket(PF_INET, SOCK_STREAM, IPPROTO_UDP);
+        s = socket(AF_INET, SOCK_DGRAM, 0);
         if (s < 0)
                 errexit("can't create socket: %s\n", strerror(errno));
 

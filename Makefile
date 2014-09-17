@@ -1,6 +1,6 @@
 ALL=echoServer echoClient chatServer chatClient
 ECHO= echoServer echoClient
-CHAT= chatServer chatClient
+CHAT= chatServer chatClient chatCoordinator
 CFLG=-O3 -Wall
 CLEAN=rm -f $(EX) *.o *.a
 

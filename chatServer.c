@@ -23,7 +23,7 @@ int		passivesock(const char *portnum, int qlen);
 int		echo(int fd);
 
 /*------------------------------------------------------------------------
- * main - Concurrent TCP server for ECHO service
+ * Main - 
  *------------------------------------------------------------------------
  */
 int
@@ -136,7 +136,7 @@ passivesock(const char *portnum, int qlen)
                 errexit("can't get \"%s\" port number\n", portnum);
 
     /* Allocate a socket */
-        s = socket(PF_INET, SOCK_STREAM, IPPROTO_UDP);
+        s = socket(AF_INET, SOCK_DGRAM, 0);
         if (s < 0)
             errexit("can't create socket: %s\n", strerror(errno));
 
