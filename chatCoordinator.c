@@ -52,7 +52,12 @@ int main(int argc, char *argv[]) {
 	//FD_SET(msock, &afds);
 
     while(1){
-	   recvlen = recvfrom(msock, buf, BUFSIZE, 0, (struct sockaddr *)&fsin, &alen);
+        recvlen = recvfrom(fd, buf, BUFSIZE, 0, (struct sockaddr *)&remaddr, &addrlen);
+        printf("received %d bytes\n", recvlen);
+        if (recvlen > 0) {
+                buf[recvlen] = 0;
+                printf("received message: \"%s\"\n", buf);
+        }
     }
 
     return 0;

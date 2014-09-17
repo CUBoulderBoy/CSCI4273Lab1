@@ -28,9 +28,7 @@ int	connectsock(const char *host, const char *portnum);
  * main - TCP client for ECHO service
  *------------------------------------------------------------------------
  */
-int
-main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	char	*host = "localhost";	/* host to use if none supplied	*/
 	char	*portnum = "5004";	/* default server port number	*/
 
@@ -56,8 +54,7 @@ main(int argc, char *argv[])
  * TCPecho - send input to ECHO service on specified host and print reply
  *------------------------------------------------------------------------
  */
-int
-TCPecho(const char *host, const char *portnum)
+int TCPecho(const char *host, const char *portnum)
 {
 	char	buf[LINELEN+1];		/* buffer for one line of text	*/
 	int	s, n;			/* socket descriptor, read count*/
@@ -85,9 +82,7 @@ TCPecho(const char *host, const char *portnum)
  * errexit - print an error message and exit
  *------------------------------------------------------------------------
  */
-int
-errexit(const char *format, ...)
-{
+int errexit(const char *format, ...) {
         va_list args;
 
         va_start(args, format);
@@ -100,14 +95,12 @@ errexit(const char *format, ...)
  * connectsock - allocate & connect a socket using TCP 
  *------------------------------------------------------------------------
  */
-int
-connectsock(const char *host, const char *portnum)
+int connectsock(const char *host, const char *portnum) {
 /*
  * Arguments:
  *      host      - name of host to which connection is desired
  *      portnum   - server port number
  */
-{
         struct hostent  *phe;   /* pointer to host information entry    */
         struct sockaddr_in sin; /* an Internet endpoint address         */
         int     s;              /* socket descriptor                    */

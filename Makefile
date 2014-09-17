@@ -1,4 +1,4 @@
-ALL=echoServer echoClient chatServer chatClient
+ALL=echoServer echoClient chatServer chatClient chatCoordinator
 ECHO= echoServer echoClient
 CHAT= chatServer chatClient chatCoordinator
 CFLG=-O3 -Wall
