@@ -15,6 +15,7 @@
 
 #include <map>
 #include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -25,7 +26,7 @@ extern int	errno;
 int		errexit(const char *format, ...);
 int		udpSock(const char *portnum, int qlen);
 int     tcpSock(const char *portnum, int qlen, string name, map<string, int> &servers);
-int     clientMsg(unsigned char buf[BUFSIZE]);
+int     clientMsg(char buf[BUFSIZE]);
 
 /*------------------------------------------------------------------------
  * Main - Wait on UDP port for user to make request
@@ -36,7 +37,7 @@ int main(int argc, char *argv[]) {
 	struct sockaddr_in fsin;              // From address of a client
 	int	udp_sock;                         // Coordinator UDP Socket              
     socklen_t recvlen;                    // From-address length
-    unsigned char buf[BUFSIZE];           // Input buffer
+    char buf[BUFSIZE];           // Input buffer
     map<string, int> servers;             // Map of server strings
 	
 	switch (argc) {
@@ -53,7 +54,11 @@ int main(int argc, char *argv[]) {
 
     while(1){
         recvlen = recvfrom(udp_sock, buf, BUFSIZE, 0, (struct sockaddr *)&fsin, &recvlen);
-        printf("received %d bytes\n", recvlen);
+        
+        //For confirming proper number of bytes in testing
+        //printf("received %d bytes\n", recvlen);
+        
+        //Continue if the message isn't empty
         if (recvlen > 0) {
                 buf[recvlen] = 0;
                 
@@ -167,10 +172,10 @@ int tcpSock(const char *portnum, int qlen, string name, map<string, int> &server
  * clientMsg - Handle client messages
  *------------------------------------------------------------------------
  */
- int clientMsg(unsigned char buf[BUFSIZE]){
+ int clientMsg(char buf[BUFSIZE]){
     string message(buf);
 
-    //printf(message);
+    cout << message;
 
     return 0;
  }
