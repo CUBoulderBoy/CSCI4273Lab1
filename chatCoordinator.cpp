@@ -173,9 +173,25 @@ int tcpSock(const char *portnum, int qlen, string name, map<string, int> &server
  *------------------------------------------------------------------------
  */
  int clientMsg(char buf[BUFSIZE]){
-    string message(buf);
+    string command = "";
+    string params = "";
 
-    cout << message;
+    //Separate primary command from the parameters
+    for(int i = 0; i < BUFSIZE; i++){
+        if ( buf[i] != ' '){
+            //Conver to upper case for matching, then add to string
+            command += toupper(buf[i]);
+        }
+        else {
+            i++;
+            for (; i < BUFSIZE; i++){
+                params += buf[i];
+            }
+        }
+    }
+
+    //Determine appropriate command
+    //if (command == "")
 
     return 0;
  }
