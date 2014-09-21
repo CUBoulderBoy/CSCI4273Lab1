@@ -38,7 +38,7 @@ int     clientMsg(char buf[BUFSIZE], int recvlen, map<string, int> &servers);
 int main(int argc, char *argv[]) {
 	char *portnum = "5004";               // Standard server port number
 	struct sockaddr_in fsin;              // From address of a client
-	int	udp_sock, tcp_sock, sendlen;             
+	int	udp_sock, tcp_sock, sendlen, pid;             
     socklen_t recvlen;                    // From-address length
     char buf[BUFSIZE];                    // Input buffer
     map<string, int> servers;             // Map of server strings
@@ -65,34 +65,40 @@ int main(int argc, char *argv[]) {
         
         // Continue if the message isn't empty
         if (recvlen > 0) {
-                buf[recvlen] = 0;
-                
-                // For server testing, can remove of leave later
-                printf("received message: \"%s\"\n", buf);
-                
-                // Pass buffer to message handler
-                tcp_sock = clientMsg(buf, recvlen, servers);
-                
-                // For testing of port logic
-                printf("Port Assigned: \"%i\"\n", tcp_sock);
+            buf[recvlen] = 0;
+            
+            // For server testing, can remove of leave later
+            printf("received message: \"%s\"\n", buf);
+            
+            // Pass buffer to message handler
+            tcp_sock = clientMsg(buf, recvlen, servers);
+            
+            // For testing of port logic
+            printf("Port Assigned: \"%i\"\n", tcp_sock);
 
-                // Clear the buffer for next use
-                memset(&buf, 0, sizeof(buf));
+            // Clear the buffer for next use
+            memset(&buf, 0, sizeof(buf));
 
-                // Prepare message
-                ss.str(string());
-                ss << tcp_sock;
-                portstr = ss.str();
-                portstr.copy(buf, portstr.size(), 0);
-                buf[BUFSIZE - 1] = '\0';
+            // Prepare message
+            ss.str(string());
+            ss << tcp_sock;
+            portstr = ss.str();
+            portstr.copy(buf, portstr.size(), 0);
+            buf[BUFSIZE - 1] = '\0';
 
+            pid = fork();
+            if ( pid == 0 ){
                 // Send tcp port back to client
                 sendto(udp_sock, buf, strlen(buf), 0, (struct sockaddr*) &fsin, sizeof(fsin));
 
                 // For testing
                 printf("Reply sent : \"%s\"\n", "to client");
 
-                
+                execl("./chatServer", "chatServer", portstr, (char*)NULL);
+            }
+            else{
+                continue;
+            }
         }
     }
 
