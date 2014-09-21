@@ -18,9 +18,9 @@
 
 extern int	errno;
 
-int	TCPecho(const char *host, const char *portnum);
+int	ccUdpCommand(const char *host, const char *portnum);
 int	errexit(const char *format, ...);
-int	connectsock(const char *host, const char *portnum);
+int	udpSock(const char *host, const char *portnum);
 
 #define	LINELEN		128
 
@@ -46,21 +46,21 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "usage: TCPecho [host [port]]\n");
 		exit(1);
 	}
-	TCPecho(host, portnum);
+	ccUdpCommand(host, portnum);
 	exit(0);
 }
 
 /*------------------------------------------------------------------------
- * TCPecho - send input to ECHO service on specified host and print reply
+ * ccUdpCommand - send command to chat coordinator and wait for reply
  *------------------------------------------------------------------------
  */
-int TCPecho(const char *host, const char *portnum)
+int ccUdpCommand(const char *host, const char *portnum)
 {
 	char	buf[LINELEN+1];		/* buffer for one line of text	*/
 	int	s, n;			/* socket descriptor, read count*/
 	int	outchars, inchars;	/* characters sent and received	*/
 
-	s = connectsock(host, portnum);
+	s = udpSock(host, portnum);
 
 	while (fgets(buf, sizeof(buf), stdin)) {
 		buf[LINELEN] = '\0';	/* insure line null-terminated	*/
@@ -95,7 +95,7 @@ int errexit(const char *format, ...) {
  * connectsock - allocate & connect a socket using TCP 
  *------------------------------------------------------------------------
  */
-int connectsock(const char *host, const char *portnum) {
+int udpSock(const char *host, const char *portnum) {
 /*
  * Arguments:
  *      host      - name of host to which connection is desired

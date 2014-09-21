@@ -26,7 +26,7 @@ extern int	errno;
 int		errexit(const char *format, ...);
 int		udpSock(const char *portnum, int qlen);
 int     tcpSock(const char *portnum, int qlen, string name, map<string, int> &servers);
-int     clientMsg(char buf[BUFSIZE]);
+int     clientMsg(char buf[BUFSIZE], int recvlen);
 
 /*------------------------------------------------------------------------
  * Main - Wait on UDP port for user to make request
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
                 //printf("received message: \"%s\"\n", buf);
                 
                 //Pass buffer to message handler
-                clientMsg(buf);
+                clientMsg(buf, recvlen);
 
                 //Clear the buffer for next use
                 memset(&buf[0], 0, sizeof(buf));
@@ -172,26 +172,32 @@ int tcpSock(const char *portnum, int qlen, string name, map<string, int> &server
  * clientMsg - Handle client messages
  *------------------------------------------------------------------------
  */
- int clientMsg(char buf[BUFSIZE]){
+ int clientMsg(char buf[BUFSIZE], int recvlen){
     string command = "";
     string params = "";
 
     //Separate primary command from the parameters
-    for(int i = 0; i < BUFSIZE; i++){
+    for(int i = 0; i < recvlen; i++){
         if ( buf[i] != ' '){
-            //Conver to upper case for matching, then add to string
+            //Convert to upper case for matching, then add to string
             command += toupper(buf[i]);
         }
         else {
             i++;
-            for (; i < BUFSIZE; i++){
+            for (; i < recvlen; i++){
                 params += buf[i];
-            }
+            }   
         }
     }
 
-    //Determine appropriate command
-    //if (command == "")
+    /Determine appropriate command
+    if (command == "START"){
+        if (servers[]);
+    } else if (command == "JOIN"){
+        ;
+    } else {
+        ;
+    }
 
     return 0;
  }
