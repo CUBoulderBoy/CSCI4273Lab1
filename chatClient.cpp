@@ -1,9 +1,17 @@
+#include <arpa/inet.h>
+#include <stdarg.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 #include <sys/types.h>
 #include <sys/socket.h>
-
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <sys/wait.h>
 #include <sys/errno.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <netdb.h>
 
 #include <stdarg.h>
@@ -11,6 +19,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+#include <map>
+#include <string>
+#include <iostream>
+
+using namespace std;
 
 #ifndef INADDR_NONE
 #define INADDR_NONE     0xffffffff
@@ -56,25 +70,38 @@ int main(int argc, char *argv[]) {
  */
 int ccUdpCommand(const char *host, const char *portnum)
 {
-	char	buf[LINELEN+1];		/* buffer for one line of text	*/
-	int	s, n;			/* socket descriptor, read count*/
-	int	outchars, inchars;	/* characters sent and received	*/
+	char buf[LINELEN+1];		/* buffer for one line of text	*/
+	int	udp_sock, n;			/* socket descriptor, read count*/
+	int outchars, inchars;	/* characters sent and received	*/
+    struct sockaddr_in fsin;
+    socklen_t recvlen;
 
-	s = udpSock(host, portnum);
+	udp_sock = udpSock(host, portnum);
 
 	while (fgets(buf, sizeof(buf), stdin)) {
 		buf[LINELEN] = '\0';	/* insure line null-terminated	*/
 		outchars = strlen(buf);
-		(void) write(s, buf, outchars);
+		(void) write(udp_sock, buf, outchars);
 
-		/* read it back */
-		for (inchars = 0; inchars < outchars; inchars+=n ) {
-			n = read(s, &buf[inchars], outchars - inchars);
-			if (n < 0)
-				errexit("socket read failed: %s\n",
-					strerror(errno));
-		}
-		fputs(buf, stdout);
+        printf("received bytes");
+
+		while(1){
+            recvlen = recvfrom(udp_sock, buf, LINELEN, 0, (struct sockaddr *)&fsin, &recvlen);
+        
+            //For confirming proper number of bytes in testing
+            printf("received %d bytes\n", recvlen);
+            
+            //Continue if the message isn't empty
+            if (recvlen > 0) {
+                buf[recvlen] = 0;
+                
+                //For server testing, can remove of leave later
+                printf("received message: \"%s\"\n", buf);
+
+                //Clear the buffer for next use
+                memset(&buf[0], 0, sizeof(buf));
+            }
+        }
 	}
 }
 

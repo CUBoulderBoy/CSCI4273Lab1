@@ -1,6 +1,5 @@
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <sys/errno.h>
@@ -25,8 +24,8 @@ using namespace std;
 extern int	errno;
 int		errexit(const char *format, ...);
 int		udpSock(const char *portnum, int qlen);
-int     tcpSock(const char *portnum, int qlen, string name, map<string, int> &servers);
-int     clientMsg(char buf[BUFSIZE], int recvlen);
+int     tcpSock();
+int     clientMsg(char buf[BUFSIZE], int recvlen, map<string, int> &servers);
 
 /*------------------------------------------------------------------------
  * Main - Wait on UDP port for user to make request
@@ -35,9 +34,9 @@ int     clientMsg(char buf[BUFSIZE], int recvlen);
 int main(int argc, char *argv[]) {
 	char *portnum = "5004";               // Standard server port number
 	struct sockaddr_in fsin;              // From address of a client
-	int	udp_sock;                         // Coordinator UDP Socket              
+	int	udp_sock, tcp_sock;               // Coordinator UDP Socket              
     socklen_t recvlen;                    // From-address length
-    char buf[BUFSIZE];           // Input buffer
+    char buf[BUFSIZE];                    // Input buffer
     map<string, int> servers;             // Map of server strings
 	
 	switch (argc) {
@@ -63,10 +62,11 @@ int main(int argc, char *argv[]) {
                 buf[recvlen] = 0;
                 
                 //For server testing, can remove of leave later
-                //printf("received message: \"%s\"\n", buf);
+                printf("received message: \"%s\"\n", buf);
                 
                 //Pass buffer to message handler
-                clientMsg(buf, recvlen);
+                tcp_sock = clientMsg(buf, recvlen, servers);
+                printf("received message: \"%i\"\n", tcp_sock);
 
                 //Clear the buffer for next use
                 memset(&buf[0], 0, sizeof(buf));
@@ -125,7 +125,7 @@ int udpSock(const char *portnum, int qlen) {
  * tcpSock - allocate & bind a server socket using TCP
  *------------------------------------------------------------------------
  */
-int tcpSock(const char *portnum, int qlen, string name, map<string, int> &servers) {
+int tcpSock(int &cport_num) {
 /*
  * Arguments:
  *      portnum   - port number of the server
@@ -137,11 +137,6 @@ int tcpSock(const char *portnum, int qlen, string name, map<string, int> &server
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
     sin.sin_addr.s_addr = INADDR_ANY;
-    int cport_num;
-
-    /* Map port number (char string) to port number (int) */
-    if ((sin.sin_port=htons((unsigned short)atoi(portnum))) == 0)
-            errexit("can't get \"%s\" port number\n", portnum);
 
     /* Allocate a socket */
     s = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -162,7 +157,6 @@ int tcpSock(const char *portnum, int qlen, string name, map<string, int> &server
         
         cport_num = ntohs(sin.sin_port);
         printf("New server port number is %d\n", cport_num);
-        servers[name] = cport_num;
     }
 
     return s;
@@ -172,34 +166,44 @@ int tcpSock(const char *portnum, int qlen, string name, map<string, int> &server
  * clientMsg - Handle client messages
  *------------------------------------------------------------------------
  */
- int clientMsg(char buf[BUFSIZE], int recvlen){
+ int clientMsg(char buf[BUFSIZE], int recvlen, map<string, int> &servers){
     string command = "";
     string params = "";
+    int cport_num;
 
     //Separate primary command from the parameters
     for(int i = 0; i < recvlen; i++){
         if ( buf[i] != ' '){
             //Convert to upper case for matching, then add to string
-            command += toupper(buf[i]);
+            command += buf[i];
         }
         else {
             i++;
             for (; i < recvlen; i++){
                 params += buf[i];
-            }   
+            }
         }
     }
 
-    /Determine appropriate command
-    if (command == "START"){
-        if (servers[]);
-    } else if (command == "JOIN"){
-        ;
+    //Determine appropriate command
+    if (command == "Start"){
+        // If session isn't already in existence, then create session
+        if (servers.find(params) == servers.end()){
+            tcpSock(cport_num);
+            servers[params] = cport_num;
+            return cport_num;
+        }
+    } else if (command == "Join"){
+        if (servers.find(params) != servers.end()){
+            // If found, just return the value port stored for the session
+            return servers[params];
+        }
+        else
+            // If session doesn't exist, return an error
+            return -1;
     } else {
-        ;
+        return -1;
     }
-
-    return 0;
  }
 
 /*------------------------------------------------------------------------
