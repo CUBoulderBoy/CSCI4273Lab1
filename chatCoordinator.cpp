@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
                 // For testing
                 printf("Reply sent : \"%s\"\n", "to client");
 
-                execl("./chatServer", "chatServer", portstr, (char*)NULL);
+                execl("./chatServer", "chatServer", portstr.c_str(), (char*)NULL);
             }
             else{
                 continue;
