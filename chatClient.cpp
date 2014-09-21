@@ -36,7 +36,7 @@ int	ccUdpCommand(const char *host, const char *portnum);
 int	errexit(const char *format, ...);
 int	udpSock(const char *host, const char *portnum);
 
-#define	LINELEN		128
+#define BUFSIZE     4096
 
 /*------------------------------------------------------------------------
  * main - TCP client for ECHO service
@@ -44,7 +44,7 @@ int	udpSock(const char *host, const char *portnum);
  */
 int main(int argc, char *argv[]) {
 	char	*host = "localhost";	/* host to use if none supplied	*/
-	char	*portnum = "5004";	/* default server port number	*/
+	char	*portnum = "5004";	    /* default server port number	*/
 
 	switch (argc) {
 	case 1:
@@ -70,23 +70,25 @@ int main(int argc, char *argv[]) {
  */
 int ccUdpCommand(const char *host, const char *portnum)
 {
-	char buf[LINELEN+1];		/* buffer for one line of text	*/
-	int	udp_sock, n;			/* socket descriptor, read count*/
-	int outchars, inchars;	/* characters sent and received	*/
+	char buf[BUFSIZE];		/* buffer for one line of text	*/
+	int	cc_udp_sock, n;			/* socket descriptor, read count*/
+	int outchars, inchars;	    /* characters sent and received	*/
     struct sockaddr_in fsin;
     socklen_t recvlen;
 
-	udp_sock = udpSock(host, portnum);
+	cc_udp_sock = ccUdpSock(host, portnum);
 
 	while (fgets(buf, sizeof(buf), stdin)) {
-		buf[LINELEN] = '\0';	/* insure line null-terminated	*/
+		buf[BUFSIZE] = '\0';	/* insure line null-terminated	*/
 		outchars = strlen(buf);
-		(void) write(udp_sock, buf, outchars);
-
-        printf("received bytes");
+		(void) write(cc_udp_sock, buf, outchars);
 
 		while(1){
-            recvlen = recvfrom(udp_sock, buf, LINELEN, 0, (struct sockaddr *)&fsin, &recvlen);
+            // For testing purposes
+            printf("waiting for reply " "%s\n", "from coordinator");
+            
+            // Recieve reply from server
+            recvlen = recvfrom(cc_udp_sock, buf, BUFSIZE, 0, (struct sockaddr *)&fsin, &recvlen);
         
             //For confirming proper number of bytes in testing
             printf("received %d bytes\n", recvlen);
@@ -122,7 +124,7 @@ int errexit(const char *format, ...) {
  * connectsock - allocate & connect a socket using TCP 
  *------------------------------------------------------------------------
  */
-int udpSock(const char *host, const char *portnum) {
+int ccUdpSock(const char *host, const char *portnum) {
 /*
  * Arguments:
  *      host      - name of host to which connection is desired

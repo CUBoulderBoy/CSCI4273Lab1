@@ -15,6 +15,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -34,10 +35,12 @@ int     clientMsg(char buf[BUFSIZE], int recvlen, map<string, int> &servers);
 int main(int argc, char *argv[]) {
 	char *portnum = "5004";               // Standard server port number
 	struct sockaddr_in fsin;              // From address of a client
-	int	udp_sock, tcp_sock;               // Coordinator UDP Socket              
+	int	udp_sock, tcp_sock, sendlen;             
     socklen_t recvlen;                    // From-address length
     char buf[BUFSIZE];                    // Input buffer
     map<string, int> servers;             // Map of server strings
+    stringstream ss;
+    string portstr;
 	
 	switch (argc) {
 	case	1:
@@ -54,22 +57,35 @@ int main(int argc, char *argv[]) {
     while(1){
         recvlen = recvfrom(udp_sock, buf, BUFSIZE, 0, (struct sockaddr *)&fsin, &recvlen);
         
-        //For confirming proper number of bytes in testing
+        // For confirming proper number of bytes in testing
         //printf("received %d bytes\n", recvlen);
         
-        //Continue if the message isn't empty
+        // Continue if the message isn't empty
         if (recvlen > 0) {
                 buf[recvlen] = 0;
                 
-                //For server testing, can remove of leave later
+                // For server testing, can remove of leave later
                 printf("received message: \"%s\"\n", buf);
                 
-                //Pass buffer to message handler
+                // Pass buffer to message handler
                 tcp_sock = clientMsg(buf, recvlen, servers);
-                printf("received message: \"%i\"\n", tcp_sock);
+                
+                // For testing of port logic
+                printf("Port Assigned: \"%i\"\n", tcp_sock);
 
-                //Clear the buffer for next use
+                // Clear the buffer for next use
                 memset(&buf[0], 0, sizeof(buf));
+
+                // Prepare message
+                ss << tcp_sock;
+                portstr = ss.str();
+                strcpy(buf, portstr.c_str());
+                sendlen = sizeof(portstr);
+
+                // Send tcp port back to client
+                sendto(udp_sock, portstr.c_str(), sizeof(portstr.c_str()), 0, (struct sockaddr*) &fsin, recvlen);
+
+                
         }
     }
 
