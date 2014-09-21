@@ -1,10 +1,11 @@
-
+#include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <sys/errno.h>
+
 #include <netinet/in.h>
 #include <netdb.h>
 
@@ -13,6 +14,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+#include <map>
+#include <string>
+#include <iostream>
+#include <sstream>
+
+using namespace std;
 
 #define	QLEN		  32	/* maximum connection queue length	*/
 #define	BUFSIZE		4096

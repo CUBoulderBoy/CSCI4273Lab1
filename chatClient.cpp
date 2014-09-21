@@ -33,11 +33,12 @@ extern int	errno;
 int	command(const char *host, const char *portnum);
 int	errexit(const char *format, ...);
 int udpCom(char buf[BUFSIZE], const char *host, const char *portnum);
+int connectSession(const char *host, const char *portnum);
 
 
 
 /*------------------------------------------------------------------------
- * main - TCP client for ECHO service
+ * main - chat client over TCP and UDP
  *------------------------------------------------------------------------
  */
 int main(int argc, char *argv[]) {
@@ -69,8 +70,10 @@ int main(int argc, char *argv[]) {
  */
 int command(const char *host, const char *portnum)
 {
-	char buf[BUFSIZE];		           /* buffer for one line of text	*/
-	int	reply, i;			                   /* socket descriptor, read count*/
+	char buf[BUFSIZE];		           /* buffer sending communications */
+	int	reply, i;			           /* socket descriptor, read count*/
+    int tcp_sock;                      /* active tcp socket tracker */
+    char rebuf[BUFSIZE];               /* buffer for reply communications */
 
     string command, params;
 
@@ -105,8 +108,6 @@ int command(const char *host, const char *portnum)
                 break;
         }
 
-        cout << "Command recieved: " << command;
-
         // Check for non-chat commands
         if (command == "Exit"){
             exit(0);
@@ -119,6 +120,7 @@ int command(const char *host, const char *portnum)
             else{
                 // Add session code here
                 printf("A new chat session %s has been created and you have joined this session\n", params.c_str());
+
             }
         }
         else if (command == "Join"){
@@ -131,12 +133,73 @@ int command(const char *host, const char *portnum)
                 printf("You have joined the chat session " "%s\n", params.c_str());
             }
         }
-        else{
-            printf("Command: " "%s" " is not currently supported" "\n", command.c_str()); 
-        }
+        else if (command == "Submit"){
+            if (tcp_sock == 0){
+                printf("%s\n", "Sorry, you're not currently connected to a chat session");
+            }
+            else{
+                // Send submit command
+                write(tcp_sock, buf, sizeof(buf));
 
-		// Ensure line null-terminated
-        buf[BUFSIZE] = '\0';
+                // Clear buffer
+                memset(&buf, 0, sizeof(buf));
+            }
+        }
+        else if (command == "GetNext"){
+            if (tcp_sock == 0){
+                printf("%s\n", "Sorry, you're not currently connected to a chat session");
+            }
+            else{
+                // Send getnext command
+                write(tcp_sock, buf, sizeof(buf));
+
+                // Clear buffer
+                memset(&buf, 0, sizeof(buf));
+
+                // Read reply
+                read(tcp_sock, &rebuf, sizeof(rebuf));
+
+                // Display to user
+                printf("%s\n", rebuf);
+
+                // Clear buffer
+                memset(&rebuf, 0, sizeof(rebuf));
+            }
+        }
+        else if (command == "GetAll"){
+            if (tcp_sock == 0){
+                printf("%s\n", "Sorry, you're not currently connected to a chat session");
+            }
+            else{
+                // Send getnext command
+                write(tcp_sock, buf, sizeof(buf));
+
+                // Clear buffer
+                memset(&buf, 0, sizeof(buf));
+
+                // Read reply
+                read(tcp_sock, &rebuf, sizeof(rebuf));
+
+                // Display to user
+                printf("%s\n", rebuf);
+
+                // Clear buffer
+                memset(&rebuf, 0, sizeof(rebuf));
+            }
+        }
+        else if (command == "Leave"){
+            // Send getnext command
+            write(tcp_sock, buf, sizeof(buf));
+
+            // Clear buffer
+            memset(&buf, 0, sizeof(buf));
+
+            // Disable TCP socket
+            tcp_sock = 0;
+        }
+        else{
+            printf("Command: " "%s" " is invalid, please try again" "\n", command.c_str()); 
+        }
 	}
 }
 
@@ -158,7 +221,7 @@ int errexit(const char *format, ...) {
  *------------------------------------------------------------------------
  */
 int udpCom(char buf[BUFSIZE], const char *host, const char *portnum) {
-    int udp_sock, recvlen;
+    int udp_sock, recvlen, tcp_sock;
     struct sockaddr_in serv_sin, cli_sin;
     socklen_t sen_len = sizeof(struct sockaddr);
     socklen_t rec_len;
@@ -219,14 +282,55 @@ int udpCom(char buf[BUFSIZE], const char *host, const char *portnum) {
 
             if (!reply){
                 printf("Error converting string to " "%s\"\n", "number");
-                return 1000;
+                return -1;
             }
             else{
-                return reply;
+                tcp_sock = connectSession(host, rebuf);
+                return tcp_sock;
             }
         }
         else{
             continue;
         }
     }
+}
+
+/*------------------------------------------------------------------------
+ * connectSession - allocate & connect a socket using TCP 
+ *------------------------------------------------------------------------
+ */
+int connectSession(const char *host, const char *portnum){
+/*
+ * Arguments:
+ *      host      - name of host to which connection is desired
+ *      portnum   - server port number
+ */
+    struct hostent  *phe;   /* pointer to host information entry    */
+    struct sockaddr_in sin; /* an Internet endpoint address         */
+    int     s;              /* socket descriptor                    */
+
+
+    memset(&sin, 0, sizeof(sin));
+    sin.sin_family = AF_INET;
+
+    /* Map port number (char string) to port number (int)*/
+    if ((sin.sin_port=htons((unsigned short)atoi(portnum))) == 0)
+        errexit("can't get \"%s\" port number\n", portnum);
+
+    /* Map host name to IP address, allowing for dotted decimal */
+    if ( phe = gethostbyname(host) )
+        memcpy(&sin.sin_addr, phe->h_addr, phe->h_length);
+    else if ( (sin.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE )
+        errexit("can't get \"%s\" host entry\n", host);
+
+    /* Allocate a socket */
+    s = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (s < 0)
+        errexit("can't create socket: %s\n", strerror(errno));
+
+    /* Connect the socket */
+    if (connect(s, (struct sockaddr *)&sin, sizeof(sin)) < 0)
+        errexit("can't connect to %s.%s: %s\n", host, portnum,
+        strerror(errno));
+    return s;
 }

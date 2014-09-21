@@ -1,8 +1,11 @@
+#include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <sys/errno.h>
+
 #include <netinet/in.h>
 #include <netdb.h>
 
