@@ -72,10 +72,11 @@ int main(int argc, char *argv[]) {
 int command(const char *host, const char *portnum)
 {
 	char buf[BUFSIZE];		           /* buffer for one line of text	*/
-	int	udp_sock, n;			       /* socket descriptor, read count*/
+	int	udp_sock, n, recvlen;			       /* socket descriptor, read count*/
 	int outchars, inchars;	           /* characters sent and received	*/
     struct sockaddr_in serv_sin, cli_sin;
-    socklen_t recvlen;
+    socklen_t sen_len = sizeof(struct sockaddr);
+    socklen_t rec_len;
     struct hostent *phe;               /* pointer to host information entry    */
 
     // Create socket
@@ -86,7 +87,7 @@ int command(const char *host, const char *portnum)
     serv_sin.sin_family = AF_INET;
 
     // Configure address for client
-    //memset(&cli_sin, 0, sizeof(cli_sin));
+    memset(&cli_sin, 0, sizeof(cli_sin));
     //cli_sin.sin_family = AF_INET;
 
     // Map port number (char string) to port number (int)
@@ -106,17 +107,20 @@ int command(const char *host, const char *portnum)
         buf[BUFSIZE] = '\0';
 
         // Sent command to chat coordinator
-		sendto(udp_sock, buf, strlen(buf), 0, (struct sockaddr *)&serv_sin, sizeof(serv_sin));
+		sendto(udp_sock, buf, strlen(buf), 0, (struct sockaddr *)&serv_sin, sen_len);
+
+        // Clear buffer
+        memset(&buf, 0, sizeof(buf));
 
 		while(true){
             // For testing purposes
             printf("waiting for reply " "%s\n", "from coordinator");
             
             // Recieve reply from server
-            recvlen = recvfrom(udp_sock, buf, BUFSIZE, 0, (struct sockaddr *)&cli_sin, &recvlen);
+            recvlen = recvfrom(udp_sock, buf, BUFSIZE, 0, (struct sockaddr *)&cli_sin, &rec_len);
         
             //For confirming proper number of bytes in testing
-            printf("received %d bytes\n", recvlen);
+            printf("received %d bytes\n", rec_len);
             
             //Continue if the message isn't empty
             if (recvlen > 0) {
@@ -126,7 +130,7 @@ int command(const char *host, const char *portnum)
                 printf("received message: \"%s\"\n", buf);
 
                 //Clear the buffer for next use
-                memset(&buf[0], 0, sizeof(buf));
+                memset(&buf, 0, sizeof(buf));
             }
             printf("Recieved reply from " "%s\n", "from coordinator");
         }
