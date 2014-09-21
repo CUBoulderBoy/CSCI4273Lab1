@@ -102,7 +102,13 @@ int command(const char *host, const char *portnum)
     else if ( (serv_sin.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE )
             errexit("can't get \"%s\" host entry\n", host);
 
-	while (fgets(buf, sizeof(buf), stdin)) {
+	while (true) {
+        // For testing
+        printf("waiting for command " "%s\n", "from user");
+
+        // Read from standard input
+        fgets(buf, sizeof(buf), stdin);
+
 		// Ensure line null-terminated
         buf[BUFSIZE] = '\0';
 
@@ -118,9 +124,6 @@ int command(const char *host, const char *portnum)
             
             // Recieve reply from server
             recvlen = recvfrom(udp_sock, buf, BUFSIZE, 0, (struct sockaddr *)&cli_sin, &rec_len);
-        
-            //For confirming proper number of bytes in testing
-            printf("received %d bytes\n", rec_len);
             
             //Continue if the message isn't empty
             if (recvlen > 0) {
@@ -131,8 +134,12 @@ int command(const char *host, const char *portnum)
 
                 //Clear the buffer for next use
                 memset(&buf, 0, sizeof(buf));
+
+                break;
             }
-            printf("Recieved reply from " "%s\n", "from coordinator");
+            else{
+                continue;
+            }
         }
 	}
 }

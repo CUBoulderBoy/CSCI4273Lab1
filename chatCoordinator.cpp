@@ -208,15 +208,18 @@ int tcpSock(int &cport_num) {
     //Determine appropriate command
     if (command == "Start"){
         // If session isn't already in existence, then create session
-        if (servers.find(params) == servers.end()){
+        if (servers.count(params) <= 0){
             tcpSock(cport_num);
             servers[params] = cport_num;
             return cport_num;
         }
+        else{
+            return -1;
+        }
     } else if (command == "Join"){
-        if (servers.find(params) != servers.end()){
+        if (servers.count(params) > 0){
             // If found, just return the value port stored for the session
-            return servers[params];
+            return servers.at(params);
         }
         else
             // If session doesn't exist, return an error
