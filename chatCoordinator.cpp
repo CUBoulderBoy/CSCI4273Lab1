@@ -79,11 +79,14 @@ int main(int argc, char *argv[]) {
                 // Prepare message
                 ss << tcp_sock;
                 portstr = ss.str();
-                strcpy(buf, portstr.c_str());
-                sendlen = sizeof(portstr);
+                portstr.copy(buf, portstr.size(), 0);
+                buf[BUFSIZE - 1] = '\0';
 
                 // Send tcp port back to client
-                sendto(udp_sock, portstr.c_str(), sizeof(portstr.c_str()), 0, (struct sockaddr*) &fsin, recvlen);
+                sendto(udp_sock, buf, strlen(buf), 0, (struct sockaddr*) &fsin, sizeof(fsin));
+
+                // For testing
+                printf("Reply sent : \"%s\"\n", "to client");
 
                 
         }
