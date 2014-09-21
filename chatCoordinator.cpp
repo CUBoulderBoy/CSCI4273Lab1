@@ -189,20 +189,21 @@ int tcpSock(int &cport_num) {
  int clientMsg(char buf[BUFSIZE], int recvlen, map<string, int> &servers){
     string command = "";
     string params = "";
-    int cport_num;
+    int cport_num, i;
 
     //Separate primary command from the parameters
-    for(int i = 0; i < recvlen; i++){
+    for(i = 0; i < recvlen; i++){
         if ( buf[i] != ' '){
-            //Convert to upper case for matching, then add to string
+            // Add command to string
             command += buf[i];
         }
-        else {
-            i++;
-            for (; i < recvlen; i++){
-                params += buf[i];
-            }
+        else{
+            break;
         }
+    }
+    i++;
+    for (; i < recvlen; i++){
+        params += buf[i];
     }
 
     //Determine appropriate command
