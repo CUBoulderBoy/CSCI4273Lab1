@@ -74,9 +74,10 @@ int main(int argc, char *argv[]) {
                 printf("Port Assigned: \"%i\"\n", tcp_sock);
 
                 // Clear the buffer for next use
-                memset(&buf[0], 0, sizeof(buf));
+                memset(&buf, 0, sizeof(buf));
 
                 // Prepare message
+                ss.str(string());
                 ss << tcp_sock;
                 portstr = ss.str();
                 portstr.copy(buf, portstr.size(), 0);

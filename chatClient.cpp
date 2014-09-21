@@ -86,8 +86,8 @@ int command(const char *host, const char *portnum)
     serv_sin.sin_family = AF_INET;
 
     // Configure address for client
-    memset(&cli_sin, 0, sizeof(cli_sin));
-    cli_sin.sin_family = AF_INET;
+    //memset(&cli_sin, 0, sizeof(cli_sin));
+    //cli_sin.sin_family = AF_INET;
 
     // Map port number (char string) to port number (int)
     if ((serv_sin.sin_port=htons((unsigned short)atoi(portnum))) == 0)
@@ -96,7 +96,7 @@ int command(const char *host, const char *portnum)
     // Map host name to IP address, allowing for dotted decimal
     if ( phe = gethostbyname(host) ){
             memcpy(&serv_sin.sin_addr, phe->h_addr, phe->h_length);
-            memcpy(&cli_sin.sin_addr, phe->h_addr, phe->h_length);
+            //memcpy(&cli_sin.sin_addr, phe->h_addr, phe->h_length);
     }
     else if ( (serv_sin.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE )
             errexit("can't get \"%s\" host entry\n", host);
@@ -113,7 +113,7 @@ int command(const char *host, const char *portnum)
             printf("waiting for reply " "%s\n", "from coordinator");
             
             // Recieve reply from server
-            recvlen = recvfrom(udp_sock, buf, BUFSIZE, 0, NULL, NULL);
+            recvlen = recvfrom(udp_sock, buf, BUFSIZE, 0, (struct sockaddr *)&cli_sin, &recvlen);
         
             //For confirming proper number of bytes in testing
             printf("received %d bytes\n", recvlen);
