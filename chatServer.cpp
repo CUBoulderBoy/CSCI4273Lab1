@@ -29,7 +29,7 @@ using namespace std;
 extern int	errno;
 int		errexit(const char *format, ...);
 int		passivesock(const char *portnum, int qlen);
-int     clientCom(int fd, map<int, string>* chat_msgs, map<int, int>* cli_read);
+int     clientCom(int fd, map<int, string>* chat_msgs, map<int, int>* cli_read, int* latest_msg);
 
 /*------------------------------------------------------------------------
  * Main - Chat session server for single chat instance
@@ -43,6 +43,7 @@ int main(int argc, char *argv[]) {
     int fd, nfds;                       // File trackers
     int tcp_sock, ssock;                // Socket trackers
     int reply;                          // Reply variable
+    int latest_msg = 0;                 // Tracker for the last message submitted
     map<int, string> chat_msgs;         // Map to store chat messages
     map<int, int> cli_read;             // Map to track client message reads
     time_t timer;                       // Time to check for terminate
@@ -100,7 +101,7 @@ int main(int argc, char *argv[]) {
             if (fd != tcp_sock && FD_ISSET(fd, &rfds)){
 
                 // Call client communication handler function
-                reply = clientCom(fd, &chat_msgs, &cli_read);
+                reply = clientCom(fd, &chat_msgs, &cli_read, &latest_msg);
 
                 // If return is 0, terminal connection to client
                 if (reply == 0) {
@@ -144,11 +145,11 @@ int errexit(const char *format, ...){
  * clientCom - Handle recieved client communications
  *------------------------------------------------------------------------
  */
-int clientCom(int fd, map<int, string>* chat_msgs, map<int, int>* cli_read){
+int clientCom(int fd, map<int, string>* chat_msgs, map<int, int>* cli_read, int* latest_msg){
     char buf[BUFSIZE];                  // Recieve buffer
     char rebuf[BUFSIZE];                // Send buffer
     int recvlen;                        // Length of message recieved
-    int i;                              // Iterator for parsing
+    int i, k;                           // Iterators for parsing
     string command, params;             // String holders
 
     // Clear recieve buffer before usage
@@ -178,13 +179,25 @@ int clientCom(int fd, map<int, string>* chat_msgs, map<int, int>* cli_read){
             break;
         }
     }
+
+    // Remove whitespace
     i++;
+
+    //Store place marker for submit command
+    k = i;
+
+    // Parse out parameters
     for (; i < recvlen; i++){
         params += buf[i];
     }
 
     if (command == "Submit"){
-        // deal with command
+        // Parse out message length
+        string msg_l_str = "";
+        string msg = "";
+        int msg_l_int;
+        
+        for (i = 0, )
         ;
     }
     else if (command == "GetNext"){
@@ -203,6 +216,4 @@ int clientCom(int fd, map<int, string>* chat_msgs, map<int, int>* cli_read){
         // Invalid command
         ;
     }
-
-
 }
