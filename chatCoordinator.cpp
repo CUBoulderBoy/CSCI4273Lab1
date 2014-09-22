@@ -226,7 +226,8 @@ int tcpSock(int &cport_num) {
         else{
             return -1;
         }
-    } else if (command == "Join"){
+    }
+    else if (command == "Join"){
         if (servers.count(params) > 0){
             // If found, just return the value port stored for the session
             return servers.at(params);
@@ -234,7 +235,8 @@ int tcpSock(int &cport_num) {
         else
             // If session doesn't exist, return an error
             return -1;
-    } else {
+    }
+    else {
         return -1;
     }
  }
