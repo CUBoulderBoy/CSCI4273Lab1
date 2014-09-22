@@ -86,6 +86,10 @@ int main(int argc, char *argv[]) {
             portstr.copy(buf, portstr.size(), 0);
             buf[BUFSIZE - 1] = '\0';
 
+            // Listen on the provided tcp socket for client communications
+            if (listen(tcp_sock, QLEN) < 0)
+                errexit("Can't listen on socket: %s\n", strerror(errno));
+
             pid = fork();
             if ( pid == 0 ){
                 // Send tcp port back to client
@@ -94,6 +98,7 @@ int main(int argc, char *argv[]) {
                 // For testing
                 printf("Reply sent : \"%s\"\n", "to client");
 
+                // Execl a new chat server function
                 execl("./chatServer", "chatServer", portstr.c_str(), (char*)NULL);
             }
             else{
