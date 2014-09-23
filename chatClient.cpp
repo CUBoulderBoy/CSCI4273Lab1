@@ -26,12 +26,12 @@ using namespace std;
 #define INADDR_NONE     0xffffffff
 #endif  /* INADDR_NONE */
 
-extern int	errno;
+extern int  errno;
 
 #define BUFSIZE     4096
 
-int	command(const char *host, const char *portnum);
-int	errexit(const char *format, ...);
+int command(const char *host, const char *portnum);
+int errexit(const char *format, ...);
 int udpCom(char buf[BUFSIZE], const char *host, const char *portnum);
 int connectSession(const char *host, const char *portnum);
 
@@ -42,26 +42,26 @@ int connectSession(const char *host, const char *portnum);
  *------------------------------------------------------------------------
  */
 int main(int argc, char *argv[]) {
-	char	*host = "localhost";	/* host to use if none supplied	*/
-	char	*portnum = "5004";	    /* default server port number	*/
+    char    *host = "localhost";    /* host to use if none supplied */
+    char    *portnum = "5004";      /* default server port number   */
 
-	switch (argc) {
-	case 1:
-		host = "localhost";
-		break;
-	case 3:
-		host = argv[2];
-		/* FALL THROUGH */
-	case 2:
-		portnum = argv[1];
-		break;
-	default:
-		fprintf(stderr, "usage: TCPecho [host [port]]\n");
-		exit(1);
-	}
+    switch (argc) {
+    case 1:
+        host = "localhost";
+        break;
+    case 3:
+        host = argv[2];
+        /* FALL THROUGH */
+    case 2:
+        portnum = argv[1];
+        break;
+    default:
+        fprintf(stderr, "usage: TCPecho [host [port]]\n");
+        exit(1);
+    }
 
-	command(host, portnum);
-	exit(0);
+    command(host, portnum);
+    exit(0);
 }
 
 /*------------------------------------------------------------------------
@@ -70,14 +70,14 @@ int main(int argc, char *argv[]) {
  */
 int command(const char *host, const char *portnum)
 {
-	char buf[BUFSIZE];		           /* buffer sending communications */
-	int	reply, i;			           /* socket descriptor, read count*/
+    char buf[BUFSIZE];                 /* buffer sending communications */
+    int reply, i;                      /* socket descriptor, read count*/
     int tcp_sock;                      /* active tcp socket tracker */
     char rebuf[BUFSIZE];               /* buffer for reply communications */
 
     string command, params;
 
-	while (true) {
+    while (true) {
         // For testing
         printf("waiting for command " "%s\n", "from user");
 
@@ -124,7 +124,7 @@ int command(const char *host, const char *portnum)
             }
         }
         else if (command == "Join"){
-            reply = udpCom(buf, host, portnum);
+            reply = udpCom(rebuf, host, portnum);
             if (reply == -1){
                 printf("Error Joining Session %s, session not found \n" , params.c_str());
             }
@@ -200,7 +200,11 @@ int command(const char *host, const char *portnum)
         else{
             printf("Command: " "%s" " is invalid, please try again" "\n", command.c_str()); 
         }
-	}
+
+        // Clear buffers
+        memset(&rebuf, 0, sizeof(rebuf));
+        memset(&buf, 0, sizeof(buf));
+    }
 }
 
 /*------------------------------------------------------------------------
@@ -256,13 +260,10 @@ int udpCom(char buf[BUFSIZE], const char *host, const char *portnum) {
     // Clear buffer
     memset(&buf, 0, sizeof(buf));
 
-    // Notify user of attempt to connect
-    printf("Sending session request to the " "%s\n", "chat coordinator");
-
     while(true){
-        // For testing purposes
-        //printf("waiting for reply " "%s\n", "from coordinator");
-        
+        // Notify user waiting for reply
+        printf("Waiting chat coordinator " "%s\"\n", "to reply");
+
         // Recieve reply from server
         recvlen = recvfrom(udp_sock, rebuf, BUFSIZE, 0, (struct sockaddr *)&cli_sin, &rec_len);
         
@@ -273,21 +274,17 @@ int udpCom(char buf[BUFSIZE], const char *host, const char *portnum) {
             //For server testing, can remove of leave later
             printf("received message: " "%s\"\n", rebuf);
 
-            // Return buffer as int
-            stringstream ss(rebuf);
-            ss >> reply;
+
+            // Connect TCP session
+            tcp_sock = connectSession(host, rebuf);
+            
+            // For testing
+            printf("Connected session on TCP Socket: " "%i\"\n", tcp_sock);
 
             // Clear buffer
             memset(&rebuf, 0, sizeof(rebuf));
-
-            if (!reply){
-                printf("Error converting string to " "%s\"\n", "number");
-                return -1;
-            }
-            else{
-                tcp_sock = connectSession(host, rebuf);
-                return tcp_sock;
-            }
+            
+            return tcp_sock;
         }
         else{
             continue;
