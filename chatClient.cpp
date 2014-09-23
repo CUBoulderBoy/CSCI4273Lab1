@@ -28,7 +28,7 @@ using namespace std;
 
 extern int  errno;
 
-#define BUFSIZE     4096
+#define BUFSIZE     128
 
 int command(const char *host, const char *portnum);
 int errexit(const char *format, ...);
@@ -72,15 +72,12 @@ int command(const char *host, const char *portnum)
 {
     char buf[BUFSIZE];                 /* buffer sending communications */
     int reply, i;                      /* socket descriptor, read count*/
-    int tcp_sock;                      /* active tcp socket tracker */
+    int tcp_sock = 0;                      /* active tcp socket tracker */
     char rebuf[BUFSIZE];               /* buffer for reply communications */
 
     string command, params;
 
     while (true) {
-        // For testing
-        printf("waiting for command " "%s\n", "from user");
-
         // Read from standard input
         fgets(buf, sizeof(buf), stdin);
 
@@ -88,11 +85,11 @@ int command(const char *host, const char *portnum)
         command = "";
         params = "";
 
-        cout << "Initial buffer string: " << buf;
+        //cout << "Initial buffer string: " << buf;
 
         // Separate primary command from the parameters
         for(i = 0; i < BUFSIZE; i++){
-            if ( buf[i] != ' '){
+            if ( buf[i] != ' ' && buf[i] != '\0' && buf[i] != '\n' ){
                 // Add to string
                 command += buf[i];
             }
@@ -119,6 +116,7 @@ int command(const char *host, const char *portnum)
             }
             else{
                 // Add session code here
+                tcp_sock = reply;
                 printf("A new chat session %s has been created and you have joined this session\n", params.c_str());
 
             }
@@ -130,6 +128,7 @@ int command(const char *host, const char *portnum)
             }
             else{
                 // Add session code here
+                tcp_sock = reply;
                 printf("You have joined the chat session " "%s\n", params.c_str());
             }
         }
@@ -272,14 +271,21 @@ int udpCom(char buf[BUFSIZE], const char *host, const char *portnum) {
             rebuf[recvlen] = 0;
             
             //For server testing, can remove of leave later
-            printf("received message: " "%s\"\n", rebuf);
+            //printf("received message: " "%s\"\n", rebuf);
 
+            // If first char of reply is '-' error getting port
+            if ( rebuf[0] == '-'){
+                // Clear buffer
+                memset(&rebuf, 0, sizeof(rebuf));
+
+                return -1;
+            }
 
             // Connect TCP session
             tcp_sock = connectSession(host, rebuf);
             
             // For testing
-            printf("Connected session on TCP Socket: " "%i\"\n", tcp_sock);
+            //printf("Connected session on TCP Socket: " "%i\"\n", tcp_sock);
 
             // Clear buffer
             memset(&rebuf, 0, sizeof(rebuf));

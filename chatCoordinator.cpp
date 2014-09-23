@@ -23,13 +23,13 @@
 using namespace std;
 
 #define QLEN          32    /* maximum connection queue length  */
-#define BUFSIZE     4096
+#define BUFSIZE      128
 
 extern int  errno;
 int     errexit(const char *format, ...);
-int     udpSock(const char *portnum, int qlen);
+int     udpSock(const char *portnum, int qlen, int &udp_port_num);
 int     tcpSock();
-int     clientMsg(int udp_sock, char buf[BUFSIZE], int recvlen, map<string, int> &servers, int &tcp_sock);
+int     clientMsg(int udp_sock, char buf[BUFSIZE], int recvlen, map<string, int> &servers, int &tcp_sock, int udp_port_num);
 
 /*------------------------------------------------------------------------
  * Main - Wait on UDP port for user to make request
@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
     map<string, int> servers;                       // Map of server strings
     stringstream ss;
     string portstr, udpstr, sname;
+    int udp_port_num;
     
     switch (argc) {
     case    1:
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
         errexit("usage: TCPmechod [port]\n");
     }
 
-    udp_sock = udpSock(portnum, QLEN);
+    udp_sock = udpSock(portnum, QLEN, udp_port_num);
 
     while(1){
         // Recieve message
@@ -70,20 +71,25 @@ int main(int argc, char *argv[]) {
             buf[recvlen] = 0;
             
             // For server testing, can remove of leave later
-            printf("received message: \"%s\"\n", buf);
+            //printf("received message: \"%s\"\n", buf);
             
             // Pass buffer to message handler
-            tcpport = clientMsg(udp_sock, buf, recvlen, servers, tcp_sock);
+            tcpport = clientMsg(udp_sock, buf, recvlen, servers, tcp_sock, udp_port_num);
 
             // Clear the send buffer for next use
             memset(&buf, 0, sizeof(buf));
             memset(&rebuf, 0, sizeof(rebuf));
 
+            // If command was terminate, do nothing
+            if (tcpport == -2){
+                continue;
+            }
+
             // If tcp_sock equals 0, from child process and do nothing
             if (tcpport != 0){
                 // For testing of port logic
-                printf("Port Assigned: \"%i\"\n", tcpport);
-                printf("TCP Socket: \"%i\"\n", tcp_sock);
+                //printf("Port Assigned: \"%i\"\n", tcpport);
+                //printf("TCP Socket: \"%i\"\n", tcp_sock);
 
                 // Prepare message
                 ss.str(string());
@@ -93,13 +99,13 @@ int main(int argc, char *argv[]) {
                 rebuf[BUFSIZE - 1] = '\0';
 
                 // For testing of map retrieval
-                printf("Port message to send back to client \"%s\"\n", portstr.c_str());
+                //printf("Port message to send back to client \"%s\"\n", portstr.c_str());
 
                 // Send tcp port back to client
                 sendto(udp_sock, rebuf, strlen(rebuf), 0, (struct sockaddr*) &fsin, sizeof(fsin));
 
                 // For testing
-                printf("Reply sent: \"%s\"\n", "to client");
+                //printf("Reply sent: \"%s\"\n", "to client");
             }
         }
     }
@@ -110,7 +116,7 @@ int main(int argc, char *argv[]) {
  * udpSock - allocate & bind a server socket using UDP
  *------------------------------------------------------------------------
  */
-int udpSock(const char *portnum, int qlen) {
+int udpSock(const char *portnum, int qlen, int &udp_port_num) {
 /*
  * Arguments:
  *      portnum   - port number of the server
@@ -148,6 +154,9 @@ int udpSock(const char *portnum, int qlen) {
             printf("New server port number is %d\n", ntohs(sin.sin_port));
         }
     }
+
+    // Store server udp port number
+    udp_port_num = ntohs(sin.sin_port);
 
     return s;
 }
@@ -197,7 +206,7 @@ int tcpSock(int &cport_num) {
  * clientMsg - Handle client messages
  *------------------------------------------------------------------------
  */
- int clientMsg(int udp_sock, char buf[BUFSIZE], int recvlen, map<string, int> &servers, int &tcp_sock){
+ int clientMsg(int udp_sock, char buf[BUFSIZE], int recvlen, map<string, int> &servers, int &tcp_sock, int udp_port_num){
     string command = "";
     string params = "";
     int cport_num, i, pid;
@@ -206,7 +215,7 @@ int tcpSock(int &cport_num) {
 
     //Separate primary command from the parameters
     for(i = 0; i < recvlen; i++){
-        if ( buf[i] != ' '){
+        if ( buf[i] != ' ' && buf[i] != '\0' && buf[i] != '\n' ){
             // Add command to string
             command += buf[i];
         }
@@ -219,6 +228,9 @@ int tcpSock(int &cport_num) {
         params += buf[i];
     }
 
+    // For testing
+    //cout << "Comand Recieved: " << command.c_str();
+
     //Determine appropriate command
     if (command == "Start"){
         // If session isn't already in existence, then create session
@@ -227,14 +239,14 @@ int tcpSock(int &cport_num) {
             tcp_sock = tcpSock(cport_num);
 
             // For testing
-            printf("Port number: " "%i\n", cport_num);
-            printf("TCP Socket number: " "%i\n", tcp_sock);
+            //printf("Port number: " "%i\n", cport_num);
+            //printf("TCP Socket number: " "%i\n", tcp_sock);
 
             // Store the port parameters
             servers[params] = cport_num;
 
             // For testing
-            printf("Store port nuber: " "%i\n", servers[params]);
+            //printf("Store port nuber: " "%i\n", servers[params]);
 
             // Listen on the provided tcp socket for client communications
             if (listen(tcp_sock, QLEN) < 0)
@@ -247,7 +259,7 @@ int tcpSock(int &cport_num) {
             if ( pid == 0 ){
                 // Prepare udpSock for execl
                 ss.str(string());
-                ss << udp_sock;
+                ss << udp_port_num;
                 udpstr = ss.str();
 
                 // Prepare tcpSock for excel
@@ -256,7 +268,7 @@ int tcpSock(int &cport_num) {
                 tcpstr = ss.str();
 
                 // Execl a new chat server function
-                //execl("./chatServer", "chatServer", tcpstr.c_str(), udpstr.c_str(), params.c_str(), NULL);
+                execl("./chatServer", "chatServer", tcpstr.c_str(), udpstr.c_str(), params.c_str(), NULL);
 
                 return 0;
             }
@@ -276,6 +288,18 @@ int tcpSock(int &cport_num) {
         else
             // If session doesn't exist, return an error
             return -1;
+    }
+    else if (command == "Terminate"){
+        // For testing
+        //printf("Terminate Command Recieved for: " "%s\n", params.c_str());
+        if (servers.count(params) > 0){
+            // If found, erase from session map
+            servers.erase(params);
+            return -2;
+        }
+        else
+            // If session doesn't exist, return an error
+            return -2;
     }
     else {
         return -1;
