@@ -1,3 +1,14 @@
+/* ChatServer Program
+ *
+ * CSCI 4273 Fall 2014
+ *
+ * Programming Assignment 1: Chat Program
+ *
+ * Author: Christopher Jordan
+ *
+ * Updated: 09/23/2014
+ */
+
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>

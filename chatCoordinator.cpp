@@ -1,3 +1,14 @@
+/* ChatCoordinator Program
+ *
+ * CSCI 4273 Fall 2014
+ *
+ * Programming Assignment 1: Chat Program
+ *
+ * Author: Christopher Jordan
+ *
+ * Updated: 09/23/2014
+ */
+
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -280,7 +291,7 @@ int tcpSock(int &cport_num) {
             return -1;
         }
     }
-    else if (command == "Join"){
+    else if (command == "Find"){
         if (servers.count(params) > 0){
             // If found, just return the value port stored for the session
             return servers.at(params);

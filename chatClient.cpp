@@ -1,3 +1,14 @@
+/* ChatClient Program
+ *
+ * CSCI 4273 Fall 2014
+ *
+ * Programming Assignment 1: Chat Program
+ *
+ * Author: Christopher Jordan
+ *
+ * Updated: 09/23/2014
+ */
+
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -122,7 +133,12 @@ int command(const char *host, const char *portnum)
             }
         }
         else if (command == "Join"){
-            reply = udpCom(rebuf, host, portnum);
+            //Change Join command to Find
+            buf[0] = 'F';
+            buf[1] = 'i';
+            buf[2] = 'n';
+            buf[3] = 'd';
+            reply = udpCom(buf, host, portnum);
             if (reply == -1){
                 printf("Error Joining Session %s, session not found \n" , params.c_str());
             }
@@ -261,7 +277,7 @@ int udpCom(char buf[BUFSIZE], const char *host, const char *portnum) {
 
     while(true){
         // Notify user waiting for reply
-        printf("Waiting chat coordinator " "%s\"\n", "to reply");
+        printf("%s\n", "Waiting for Chat Coordinator to reply");
 
         // Recieve reply from server
         recvlen = recvfrom(udp_sock, rebuf, BUFSIZE, 0, (struct sockaddr *)&cli_sin, &rec_len);

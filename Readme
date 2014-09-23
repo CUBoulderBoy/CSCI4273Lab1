@@ -1,30 +1,56 @@
-There are two programs in this directory. They illustrate the use of TCP and
+Readme File
+CSCI 4273 Fall 2014
+Programming Assignment 1: Chat Program
+Author: Christopher Jordan
+Updated: 09/23/2014
+
+There are three programs in this directory. They illustrate the use of TCP and
 select() system call.
 
-The echoServer.c contains an ECHO server program that implements an ECHO
-service. After establishing connections with clients, an ECHO server receives
-byte strings from them and echos them back. The ECHO server can service
-multiple clients concurrently. It uses port number 5004 as the default port.
-Another port number pn may be specified as a command line parameter.
-If during binding process, it finds that port 5004 (or pn) is in use, it
-requests the system to allocate a port, and prints the new port number on
-standard output.
+/* -------------------------- ChatCoordinator -------------------------------- */
 
-USAGE: echoServer [port]
+ChatCoordinator facilitates the starting of chat sessions via a call to fork()
+and the execl() of the chatServer program. The coordinator is also responsible
+for storing the TCP ports of all active chatServer instances. The program
+accepts the commands: "Start [chat_name]", "Find [chat_name]", and
+"Terminate [chat_name]". With the exception of creating TCP ports/sockets for
+the chatServer, all communications via the ChatCoordinator are completed via
+UDP communications.
 
-The echoClient.c contains an ECHO client program. An ECHO client first
-establishes a connection with the ECHO server, and then repeatedly reads 
-character strings from standard input, sends them to the ECHO server, receives
-them from the ECHO server, and then prints them on the standard output.
+USAGE: chatCoordinator [port]
 
-USAGE: echoClient [port [host]]
+*Notes*: port is locally set to 5004 as a default in cases where no parameters
+are passed into the program.
+
+/* ----------------------------- ChatClient ---------------------------------- */
+
+ChatClient facilitates communication from the client to the chatCoordinator
+over UDP and with the chatServer sessions over TCP. "Start [chat_name" and
+"Join [chat_name]" requests are sent over UDP to the chatCoordinator.
+"Submit [msg_length_int] [msg_str]", "GetNext", "GetAll" and "Leave"
+commands are all directed to the specific chatServer instance over the TCP
+port. The "Exit" command is executed locally and involves no communication
+with either the chatCoordinator or chatServer.
+
+USAGE: chatClient [port] [host]
+
+*Notes*: if the coordinator is set to a port or host other than the default
+(5004 and localhost), then these parameters must be passed in for the client to
+function. The client will accept not parameters, just the port or both the port
+and the host.
+
+/* ----------------------------- ChatServer --------------------------------- */
+
+ChatServer facilitates the maintence of a single chat session over TCP and UDP.
+All command from the client are recieved via the TCP port, and the server
+continues looping through the open ports until 60 seconds have passed without
+communication from a client. At that point, the server sends a terminate
+command over UPD to the chatCoordinator, notifying it that the session is
+ending. The server then closes all connections and terminates it's operations.
+
+USAGE: Called only via the an execl() call in chatCoordinator
+
+/* --------------------------- Program Build -------------------------------- */
 
 Compile these programs as follows: 
-
-gcc -o echoServer echoServer.c 
-gcc -o echoClient echoClient.c
-
-ACKNOWLEDGEMENT: These programs are a modification of the ECHO server and
-ECHO client programs presented in the book `Internetworking with TCP/IP',
-Volume 3, Prentice Hall 2001, by D. E. Comer and D. L. Stevens.
-
+make chat

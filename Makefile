@@ -1,12 +1,18 @@
-ALL=echoServer echoClient chatServer chatClient chatCoordinator
-ECHO= echoServer echoClient
+# Makefile
+# 
+# CSCI 4273 Fall 2014
+#
+# Programming Assignment 1: Chat Program
+# 
+# Author: Christopher Jordan
+# 
+# Updated: 09/23/2014
+
 CHAT= chatServer chatClient chatCoordinator
 CFLG=-O3 -Wall
 CLEAN=rm -f $(EX) *.o *.a
 
 # Main target
-all: $(ALL)
-echo: $(ECHO)
 chat: $(CHAT)
 
 # Generic compile rules
@@ -21,4 +27,4 @@ chat: $(CHAT)
 
 #  Clean
 clean:
-	rm -f $(ALL) *.o *.a
+	rm -f $(CHAT) *.o *.a
