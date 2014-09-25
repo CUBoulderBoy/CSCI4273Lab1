@@ -216,7 +216,11 @@ int command(const char *host, const char *portnum)
 
                 if (reply_str == "Sorry, there are no new messages to retrieve" ){
                      // Display to user
-                    printf("%s", rebuf);
+                    reply_str += '\n';
+                    
+                    printf("%s", reply_str.c_str());
+                    // Clear buffer
+                    memset(&rebuf, 0, sizeof(rebuf));
                 }
                 else{
                     // Read reply
