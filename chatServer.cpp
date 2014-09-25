@@ -391,8 +391,7 @@ int clientCom(int fd, map<int, string> &chat_msgs, map<int, int> &cli_read, int 
             memset(&rebuf, 0, sizeof(rebuf));
 
             // Create end message
-            reply = "END";
-            reply += "\n";
+            reply = "END\n";
 
             // Copy string into reply buffer
             strncpy(rebuf, reply.c_str(), sizeof(rebuf));
