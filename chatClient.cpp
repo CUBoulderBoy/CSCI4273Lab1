@@ -212,11 +212,34 @@ int command(const char *host, const char *portnum)
                 // Read reply
                 read(tcp_sock, &rebuf, sizeof(rebuf));
 
-                // Display to user
-                printf("%s\n", rebuf);
+                string reply_str = string(rebuf);
 
-                // Clear buffer
-                memset(&rebuf, 0, sizeof(rebuf));
+                if (reply_str == "Sorry, there are no new messages to retrieve" ){
+                     // Display to user
+                    printf("%s", rebuf);
+                }
+                else{
+                    // Read reply
+                    while (1){
+                        // Display to user
+                        printf("%s", rebuf);
+
+                        // Clear buffer
+                        memset(&rebuf, 0, sizeof(rebuf));
+
+                        // Get next reply
+                        read(tcp_sock, &rebuf, sizeof(rebuf));
+
+                        // Convert to string again
+                        reply_str = string(rebuf);
+
+                        if( reply_str == "END\n"){
+                            // Clear buffer
+                            memset(&rebuf, 0, sizeof(rebuf));
+                            break;
+                        }
+                    }
+                }
             }
         }
         else if (command == "Leave"){

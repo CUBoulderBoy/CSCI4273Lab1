@@ -376,7 +376,7 @@ int clientCom(int fd, map<int, string> &chat_msgs, map<int, int> &cli_read, int 
 
                 // Create reply
                 reply = chat_msgs[index];
-                reply += '\n';
+                reply += "\n";
 
                 // Increase the read index for the client
                 cli_read[fd] = index + 1;
@@ -387,6 +387,19 @@ int clientCom(int fd, map<int, string> &chat_msgs, map<int, int> &cli_read, int 
                 // Send reply to client
                 send(fd, rebuf, strlen(rebuf), 0);
             }
+            // Clear buffer
+            memset(&rebuf, 0, sizeof(rebuf));
+
+            // Create end message
+            reply = "END";
+            reply += "\n";
+
+            // Copy string into reply buffer
+            strncpy(rebuf, reply.c_str(), sizeof(rebuf));
+
+            // Send reply to client
+            send(fd, rebuf, strlen(rebuf), 0);
+
             return 1;
         }
 
