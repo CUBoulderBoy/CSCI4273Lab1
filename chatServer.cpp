@@ -354,7 +354,7 @@ int clientCom(int fd, map<int, string> &chat_msgs, map<int, int> &cli_read, int 
             return 1;
         }
         else{
-            reply = "-1";
+            reply = "Sorry, there are no new messages to retrieve";
 
             // Copy string into reply buffer
             strncpy(rebuf, reply.c_str(), sizeof(rebuf));
@@ -391,7 +391,7 @@ int clientCom(int fd, map<int, string> &chat_msgs, map<int, int> &cli_read, int 
         }
 
         else{
-            reply = "-1";
+            reply = "Sorry, there are no new messages to retrieve";
 
             // Clear buffer
             memset(&rebuf, 0, sizeof(rebuf));
