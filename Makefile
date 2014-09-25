@@ -19,7 +19,7 @@ chat: $(CHAT)
 .c.o:
 	gcc -c $(CFLG) $<
 .cpp.o:
-	g++ -c $(CFLG) $<
+	g++ -c  $(CFLG) $<
 
 #  Generic compile and link
 %:%.c

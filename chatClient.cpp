@@ -85,7 +85,6 @@ int command(const char *host, const char *portnum)
     int reply, i;                      /* socket descriptor, read count*/
     int tcp_sock = 0;                      /* active tcp socket tracker */
     char rebuf[BUFSIZE];               /* buffer for reply communications */
-
     string command, params;
 
     while (true) {
@@ -95,8 +94,6 @@ int command(const char *host, const char *portnum)
         // Zero out command string
         command = "";
         params = "";
-
-        //cout << "Initial buffer string: " << buf;
 
         // Separate primary command from the parameters
         for(i = 0; i < BUFSIZE; i++){
@@ -110,7 +107,7 @@ int command(const char *host, const char *portnum)
         }
         i++;
         for (; i < BUFSIZE; i++){
-            if ( buf[i] != '\n')
+            if ( buf[i] != '\n' && buf[i] != '\0' && buf[i] != '\n')
                 params += buf[i];
             else
                 break;
@@ -153,8 +150,28 @@ int command(const char *host, const char *portnum)
                 printf("%s\n", "Sorry, you're not currently connected to a chat session");
             }
             else{
+                //For Testing
+                //printf("I equals: " "%i\n", i);
+
+                // Convert submit length to string
+                int sub_l_n = i - 7;
+                stringstream ss;
+                ss << sub_l_n;
+                string sub_l_s = ss.str();
+
+                // For testing
+                //printf("Parameters: ""%s\n", params.c_str());
+
+                // Create command string and place in buffer
+                string submit = command + " " + sub_l_s + " " + params + "\0";
+
+                //printf("Sumbit string: " "%s\n", submit.c_str());
+
+                // For Testing
+                //printf("%s\n", submit.c_str());
+
                 // Send submit command
-                write(tcp_sock, buf, sizeof(buf));
+                write(tcp_sock, submit.c_str(), BUFSIZE);
 
                 // Clear buffer
                 memset(&buf, 0, sizeof(buf));
