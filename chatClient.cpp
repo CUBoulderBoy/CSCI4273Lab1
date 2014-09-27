@@ -115,7 +115,31 @@ int command(const char *host, const char *portnum)
 
         // Check for non-chat commands
         if (command == "Exit"){
-            exit(0);
+            // If not connect, just exit
+            if( tcp_sock = 0 ){
+                // Terminate chat client
+                exit (0);
+            }
+            else{
+                buf[0] = 'L';
+                buf[1] = 'e';
+                buf[2] = 'a';
+                buf[3] = 'v';
+                buf[4] = 'e';
+                buf[5] = ' ';
+
+                // Send getnext command
+                write(tcp_sock, buf, sizeof(buf));
+
+                // Clear buffer
+                memset(&buf, 0, sizeof(buf));
+
+                // Close TCP socket
+                close(tcp_sock);
+
+                // End client
+                exit(0);
+            }
         }
         else if (command == "Start"){
             reply = udpCom(buf, host, portnum);
