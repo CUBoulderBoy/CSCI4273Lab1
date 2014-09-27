@@ -2,7 +2,8 @@ Readme File
 CSCI 4273 Fall 2014
 Programming Assignment 1: Chat Program
 Author: Christopher Jordan
-Updated: 09/23/2014
+Credits: Used code from chatSever and chatClient files
+Updated: 09/26/2014
 
 There are three programs in this directory. They illustrate the use of TCP and
 select() system call.

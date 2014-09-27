@@ -8,7 +8,7 @@
 # 
 # Updated: 09/23/2014
 
-CHAT= chatServer chatClient chatCoordinator
+CHAT= chatServer chatClient chatCoordinator chatClient2
 CFLG=-O3 -Wall
 CLEAN=rm -f $(EX) *.o *.a
 
